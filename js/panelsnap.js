@@ -1,8 +1,778 @@
-/**
- * PanelSnap.js v0.0.0-development
- * Copyright (c) 2013-present, Guido Bouman
+// Utility for creating objects in older browsers
+if ( typeof Object.create !== 'function' ) {
+  Object.create = function( obj ) {
+
+    function F() {}
+    F.prototype = obj;
+    return new F();
+
+  };
+}
+
+/*!
+ * jQuery panelSnap
+ * Version 0.12.0
  *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+ * Requires:
+ * - jQuery 1.7 or higher (no jQuery.migrate needed)
+ *
+ * https://github.com/guidobouman/jquery-panelsnap
+ *
+ * Copyright 2013, Guido Bouman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Date: Wed Feb 13 16:05:00 2013 +0100
  */
-!function(t,n){"object"==typeof exports&&"undefined"!=typeof module?module.exports=n():"function"==typeof define&&define.amd?define(n):t.PanelSnap=n()}(this,function(){"use strict";function t(t,n){for(var e=0;e<n.length;e++){var i=n[e];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}function n(t,n,e){return n in t?Object.defineProperty(t,n,{value:e,enumerable:!0,configurable:!0,writable:!0}):t[n]=e,t}function e(t){return function(t){if(Array.isArray(t)){for(var n=0,e=new Array(t.length);n<t.length;n++)e[n]=t[n];return e}}(t)||function(t){if(Symbol.iterator in Object(t)||"[object Arguments]"===Object.prototype.toString.call(t))return Array.from(t)}(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance")}()}var i=function(){function t(t,n){for(var e=0;e<n.length;e++){var i=n[e];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(n,e,i){return e&&t(n.prototype,e),i&&t(n,i),n}}();var s=function(){function t(){var n=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};!function(t,n){if(!(t instanceof n))throw new TypeError("Cannot call a class as a function")}(this,t),this.duration=n.duration||1e3,this.ease=n.easing||this._defaultEase,this.start=n.start,this.end=n.end,this.frame=null,this.next=null,this.isRunning=!1,this.events={},this.direction=this.start<this.end?"up":"down"}return i(t,[{key:"begin",value:function(){return this.isRunning||this.next===this.end||(this.frame=window.requestAnimationFrame(this._tick.bind(this))),this}},{key:"stop",value:function(){return window.cancelAnimationFrame(this.frame),this.isRunning=!1,this.frame=null,this.timeStart=null,this.next=null,this}},{key:"on",value:function(t,n){return this.events[t]=this.events[t]||[],this.events[t].push(n),this}},{key:"emit",value:function(t,n){var e=this,i=this.events[t];i&&i.forEach(function(t){return t.call(e,n)})}},{key:"_tick",value:function(t){this.isRunning=!0;var n=this.next||this.start;this.timeStart||(this.timeStart=t),this.timeElapsed=t-this.timeStart,this.next=Math.round(this.ease(this.timeElapsed,this.start,this.end-this.start,this.duration)),this._shouldTick(n)?(this.emit("tick",this.next),this.frame=window.requestAnimationFrame(this._tick.bind(this))):(this.emit("tick",this.end),this.emit("done",null))}},{key:"_shouldTick",value:function(t){return{up:this.next<this.end&&t<=this.next,down:this.next>this.end&&t>=this.next}[this.direction]}},{key:"_defaultEase",value:function(t,n,e,i){return(t/=i/2)<1?e/2*t*t+n:-e/2*(--t*(t-2)-1)+n}}]),t}();function o(t){return t!==document.body?t:"scrollingElement"in document?document.scrollingElement:navigator.userAgent.indexOf("WebKit")>-1?document.body:document.documentElement}function r(t){if(t===document.body){var n=document.documentElement;return{top:0,left:0,bottom:n.clientHeight,right:n.clientWidth,height:n.clientHeight,width:n.clientWidth}}return t.getBoundingClientRect()}var a=function(){var t=!1;try{var n=Object.defineProperty({},"passive",{get:function(){t=!0}});window.addEventListener("test",null,n),window.removeEventListener("test",null,n)}catch(t){}return t}(),l=0,c={container:document.body,panelSelector:"> section",directionThreshold:50,delay:0,duration:300,easing:function(t){return t}};return function(){function i(t){if(function(t,n){if(!(t instanceof n))throw new TypeError("Cannot call a class as a function")}(this,i),this.options=function(t){for(var e=1;e<arguments.length;e++){var i=null!=arguments[e]?arguments[e]:{},s=Object.keys(i);"function"==typeof Object.getOwnPropertySymbols&&(s=s.concat(Object.getOwnPropertySymbols(i).filter(function(t){return Object.getOwnPropertyDescriptor(i,t).enumerable}))),s.forEach(function(e){n(t,e,i[e])})}return t}({},c,t),this.options.container.dataset.panelsnapId)throw new Error("PanelSnap is already initialised on this container, aborting.");var e;this.container=this.options.container,this.scrollContainer=o(this.container),this.scrollEventContainer=(e=this.container)===document.body?window:o(e),l+=1,this.instanceIndex=l,this.container.dataset.panelsnapId=this.instanceIndex;var s='[data-panelsnap-id="'.concat(this.instanceIndex,'"] ').concat(this.options.panelSelector);this.panelList=Array.from(document.querySelectorAll(s)),this.events=[],this.isEnabled=!0,this.isInteracting=!1,this.scrollTimeout=null,this.resetAnimation(),this.onInteractStart=this.onInteractStart.bind(this),this.onInteractStop=this.onInteractStop.bind(this),this.onInteractStart=this.onInteractStart.bind(this),this.onInteractStop=this.onInteractStop.bind(this),this.onInteractStart=this.onInteractStart.bind(this),this.onInteractStop=this.onInteractStop.bind(this),this.onScroll=this.onScroll.bind(this),this.onInteract=this.onInteract.bind(this),this.scrollEventContainer.addEventListener("keydown",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.addEventListener("keyup",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.addEventListener("mousedown",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.addEventListener("mouseup",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.addEventListener("touchstart",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.addEventListener("touchend",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.addEventListener("scroll",this.onScroll,a&&{passive:!0}),this.scrollEventContainer.addEventListener("wheel",this.onInteract,a&&{passive:!0}),this.findSnapTarget()}var h,u,f;return h=i,(u=[{key:"destroy",value:function(){this.stopAnimation(),this.disable(),this.scrollEventContainer.removeEventListener("keydown",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("keyup",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("mousedown",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("mouseup",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("touchstart",this.onInteractStart,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("touchend",this.onInteractStop,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("scroll",this.onScroll,a&&{passive:!0}),this.scrollEventContainer.removeEventListener("wheel",this.onInteract,a&&{passive:!0}),delete this.options.container.dataset.panelsnapId}},{key:"enable",value:function(){this.isEnabled=!0}},{key:"disable",value:function(){this.isEnabled=!1}},{key:"on",value:function(t,n){var i=this.events[t]||[];this.events[t]=e(i).concat([n]),"activatePanel"===t&&n.call(this,this.activePanel)}},{key:"off",value:function(t,n){var e=this.events[t]||[];this.events[t]=e.filter(function(t){return t!==n})}},{key:"emit",value:function(t,n){var e=this;(this.events[t]||[]).forEach(function(t){return t.call(e,n)})}},{key:"onInteractStart",value:function(){this.stopAnimation(),this.isInteracting=!0}},{key:"onInteractStop",value:function(){this.isInteracting=!1,this.findSnapTarget()}},{key:"onInteract",value:function(){this.stopAnimation(),this.onScroll()}},{key:"onScroll",value:function(){clearTimeout(this.scrollTimeout),this.isInteracting||this.animation||(this.scrollTimeout=setTimeout(this.findSnapTarget.bind(this),50+this.options.delay))}},{key:"findSnapTarget",value:function(){var t=this.scrollContainer.scrollTop-this.currentScrollOffset.top,n=this.scrollContainer.scrollLeft-this.currentScrollOffset.left;this.currentScrollOffset={top:this.scrollContainer.scrollTop,left:this.scrollContainer.scrollLeft};var e,i,s,o=(e=this.container,i=this.panelList,s=r(e),i.filter(function(t){var n=t.getBoundingClientRect();return n.top<s.bottom&&n.right>s.left&&n.bottom>s.top&&n.left<s.right}));if(0===o.length)throw new Error("PanelSnap could not find a snappable panel, aborting.");if(o.length>1){if(Math.abs(t)<this.options.directionThreshold&&Math.abs(n)<this.options.directionThreshold&&this.activePanel)return void this.snapToPanel(this.activePanel,t>0,n>0);var a=t>0||n>0?1:o.length-2;this.snapToPanel(o[a],t<0,n<0)}else{var l=o[0];!function(t,n){var e=r(t),i=n.getBoundingClientRect();return i.top<=e.top&&i.bottom>=e.bottom&&i.left<=e.left&&i.right>=e.right}(this.container,l)?(console.error("PanelSnap does not support space between panels, snapping back."),this.snapToPanel(l,t>0,n>0)):this.activatePanel(l)}}},{key:"snapToPanel",value:function(t){var n=this,e=arguments.length>1&&void 0!==arguments[1]&&arguments[1],i=arguments.length>2&&void 0!==arguments[2]&&arguments[2];this.activatePanel(t),this.isEnabled&&(this.animation&&this.animation.stop(),this.targetScrollOffset=function(t,n){var e=arguments.length>2&&void 0!==arguments[2]&&arguments[2],i=arguments.length>3&&void 0!==arguments[3]&&arguments[3],s=r(t),a=n.getBoundingClientRect(),l=a.top-s.top,c=a.left-s.left,h=e?a.height-s.height:0,u=i?a.width-s.width:0,f=o(t);return{top:l+h+f.scrollTop,left:c+u+f.scrollLeft}}(this.container,t,e,i),this.animation=new s({start:0,end:1e4,duration:this.options.duration}),this.animation.on("tick",this.animationTick.bind(this)),this.animation.on("done",function(){n.emit("snapStop",t),n.resetAnimation()}),this.emit("snapStart",t),this.animation.begin())}},{key:"animationTick",value:function(t){var n=this.targetScrollOffset.top-this.currentScrollOffset.top,e=this.currentScrollOffset.top+n*t/1e4;this.scrollContainer.scrollTop=e;var i=this.targetScrollOffset.left-this.currentScrollOffset.left,s=this.currentScrollOffset.left+i*t/1e4;this.scrollContainer.scrollLeft=s}},{key:"stopAnimation",value:function(){this.animation&&(this.animation.stop(),this.resetAnimation())}},{key:"resetAnimation",value:function(){this.currentScrollOffset={top:this.scrollContainer.scrollTop,left:this.scrollContainer.scrollLeft},this.targetScrollOffset={top:0,left:0},this.animation=null}},{key:"activatePanel",value:function(t){this.activePanel!==t&&(this.emit("activatePanel",t),this.activePanel=t)}}])&&t(h.prototype,u),f&&t(h,f),i}()});
+(function($, window, document, undefined) {
+
+  var pluginName = 'panelSnap';
+  var storageName = 'plugin_' + pluginName;
+
+  var pluginObject = {
+
+    isMouseDown: false,
+    isSnapping: false,
+    enabled: true,
+    scrollInterval: 0,
+    scrollOffset: 0,
+
+    init: function(options, container) {
+
+      var self = this;
+
+      self.container = container;
+      self.$container = $(container);
+
+      self.$eventContainer = self.$container;
+      self.$snapContainer = self.$container;
+
+      if(self.$container.is('body')) {
+        self.$eventContainer = $(document);
+        self.$snapContainer = $(document.documentElement);
+
+        var ua = navigator.userAgent;
+        if(~ua.indexOf('WebKit')) {
+          self.$snapContainer = $('body');
+        }
+      }
+
+      self.scrollInterval = self.$container.height();
+
+      self.options = $.extend(true, {}, $.fn.panelSnap.options, options);
+
+      self.bind();
+
+      if(self.options.$menu !== false && $('.active', self.options.$menu).length > 0) {
+        $('.active', self.options.$menu).click();
+      } else {
+        var $target = self.getPanel(':first');
+        self.activatePanel($target);
+      }
+
+      return self;
+
+    },
+
+    bind: function() {
+
+      var self = this;
+
+      self.bindProxied(self.$eventContainer, 'scrollstop', self.scrollStop);
+      self.bindProxied(self.$eventContainer, 'mousewheel', self.mouseWheel);
+      self.bindProxied(self.$eventContainer, 'mousedown', self.mouseDown);
+      self.bindProxied(self.$eventContainer, 'mouseup', self.mouseUp);
+
+      self.bindProxied($(window), 'resizestop', self.resize);
+
+      if(self.options.keyboardNavigation.enabled) {
+        self.bindProxied($(window), 'keydown', self.keyDown, self.$eventContainer);
+      }
+
+      if(self.options.$menu !== false) {
+        self.bindProxied($(self.options.$menu), 'click', self.captureMenuClick, self.options.menuSelector);
+      }
+
+    },
+
+    bindProxied: function($element, event, method, selector) {
+
+      var self = this;
+
+      selector = typeof selector === 'string' ? selector : null;
+
+      $element.on(event + self.options.namespace, selector, $.proxy(function(e) {
+
+        return method.call(self, e);
+
+      }, self));
+
+    },
+
+    destroy: function() {
+
+      var self = this;
+
+      // Gotta love namespaced events!
+      self.$eventContainer.off(self.options.namespace);
+
+      $(window).off(self.options.namespace);
+
+      if(self.options.$menu !== false) {
+        $(self.options.menuSelector, self.options.$menu).off(self.options.namespace);
+      }
+
+      self.$container.removeData(storageName);
+
+    },
+
+    scrollStop: function(e) {
+
+      var self = this;
+
+      e.stopPropagation();
+
+      if(self.isMouseDown) {
+        return;
+      }
+
+      if(self.isSnapping) {
+        return;
+      }
+
+      var offset = self.$snapContainer.scrollTop();
+      var scrollDifference = offset - self.scrollOffset;
+      var maxOffset = self.$container[0].scrollHeight - self.scrollInterval;
+      var panelCount = self.getPanel().length - 1;
+
+      var childNumber;
+      if(
+        self.enabled &&
+        scrollDifference < -self.options.directionThreshold &&
+        scrollDifference > -self.scrollInterval
+      ) {
+        childNumber = Math.floor(offset / self.scrollInterval);
+      } else if(
+        self.enabled &&
+        scrollDifference > self.options.directionThreshold &&
+        scrollDifference < self.scrollInterval
+      ) {
+        childNumber = Math.ceil(offset / self.scrollInterval);
+      } else {
+        childNumber = Math.round(offset / self.scrollInterval);
+      }
+
+      childNumber = Math.max(0, Math.min(childNumber, panelCount));
+
+      var $target = self.getPanel(':eq(' + childNumber + ')');
+
+      if(!self.enabled) {
+        if(!$target.is(self.getPanel('.active'))) {
+          self.activatePanel($target);
+        }
+
+        return;
+      }
+
+      if(scrollDifference === 0) {
+        // Do nothing
+      } else if (offset <= 0 || offset >= maxOffset) {
+        // Only activate, prevent stuttering
+        self.activatePanel($target);
+        // Set scrollOffset to a sane number for next scroll
+        self.scrollOffset = offset <= 0 ? 0 : maxOffset;
+      } else {
+        self.snapToPanel($target);
+      }
+
+    },
+
+    mouseWheel: function(e) {
+
+      var self = this;
+
+      // This event only fires when the user actually scrolls with their input device.
+      // Be it a trackpad, legacy mouse or anything else.
+
+      self.$container.stop(true);
+      self.isSnapping = false;
+
+    },
+
+    mouseDown: function(e) {
+
+      var self = this;
+
+      self.isMouseDown = true;
+
+    },
+
+    mouseUp: function(e) {
+
+      var self = this;
+
+      self.isMouseDown = false;
+
+      if(self.scrollOffset !== self.$snapContainer.scrollTop()) {
+        self.scrollStop(e);
+      }
+
+    },
+
+    keyDown: function(e) {
+
+      var self = this;
+
+      var nav = self.options.keyboardNavigation;
+
+      if(!self.enabled) {
+        return;
+      }
+
+      if (self.isSnapping) {
+        if(e.which == nav.previousPanelKey || e.which == nav.nextPanelKey) {
+          e.preventDefault();
+          return false;
+        }
+
+        return;
+      }
+
+      switch(e.which) {
+        case nav.previousPanelKey:
+          e.preventDefault();
+          self.snapTo('prev', nav.wrapAround);
+          break;
+        case nav.nextPanelKey:
+          e.preventDefault();
+          self.snapTo('next', nav.wrapAround);
+          break;
+      }
+
+    },
+
+    resize: function(e) {
+
+      var self = this;
+
+      self.scrollInterval = self.$container.height();
+
+      if(!self.enabled) {
+        return;
+      }
+
+      var $target = self.getPanel('.active');
+
+      self.snapToPanel($target);
+
+    },
+
+    captureMenuClick: function(e) {
+
+      var self = this;
+
+      var panel = $(e.currentTarget).data('panel');
+      var $target = self.getPanel('[data-panel="' + panel + '"]');
+
+      self.snapToPanel($target);
+
+      return false;
+
+    },
+
+    snapToPanel: function($target) {
+
+      var self = this;
+
+      if (!($target instanceof jQuery)) {
+        return;
+      }
+
+      self.isSnapping = true;
+
+      self.options.onSnapStart.call(self, $target);
+      self.$container.trigger('panelsnap:start', [$target]);
+
+      var scrollTarget = 0;
+      if(self.$container.is('body')) {
+        scrollTarget = $target.offset().top;
+      } else {
+        scrollTarget = self.$snapContainer.scrollTop() + $target.position().top;
+      }
+
+      self.$snapContainer.stop(true).animate({
+        scrollTop: scrollTarget
+      }, self.options.slideSpeed, function() {
+
+        self.scrollOffset = scrollTarget;
+        self.isSnapping = false;
+
+        // Call callback
+        self.options.onSnapFinish.call(self, $target);
+        self.$container.trigger('panelsnap:finish', [$target]);
+
+        self.activatePanel($target);
+      });
+
+    },
+
+    activatePanel: function($target) {
+
+      var self = this;
+
+      self.getPanel('.active').removeClass('active');
+      $target.addClass('active');
+
+      if(self.options.$menu !== false) {
+        var activeItemSelector = '> ' + self.options.menuSelector + '.active';
+        $(activeItemSelector, self.options.$menu).removeClass('active');
+
+        var attribute = '[data-panel="' + $target.data('panel') + '"]';
+        var itemSelector = '> ' + self.options.menuSelector + attribute;
+        var $itemToActivate = $(itemSelector, self.options.$menu);
+        $itemToActivate.addClass('active');
+      }
+
+      self.options.onActivate.call(self, $target);
+      self.$container.trigger('panelsnap:activate', [$target]);
+
+    },
+
+    getPanel: function(selector) {
+
+      var self = this;
+
+      if(typeof selector === 'undefined') {
+        selector = '';
+      }
+
+      var panelSelector = (self.options.strictContainerSelection ? '> ' : '') + self.options.panelSelector + selector;
+      return $(panelSelector, self.$container);
+
+    },
+
+    snapTo: function(target, wrap) {
+
+      var self = this;
+
+      if(typeof wrap !== 'boolean') {
+        wrap = true;
+      }
+
+      var $target;
+
+      switch(target) {
+        case 'prev':
+
+          $target = self.getPanel('.active').prev(self.options.panelSelector);
+          if($target.length < 1 && wrap)
+          {
+            $target = self.getPanel(':last');
+          }
+          break;
+
+        case 'next':
+
+          $target = self.getPanel('.active').next(self.options.panelSelector);
+          if($target.length < 1 && wrap)
+          {
+            $target = self.getPanel(':first');
+          }
+          break;
+
+        case 'first':
+
+          $target = self.getPanel(':first');
+          break;
+
+        case 'last':
+
+          $target = self.getPanel(':last');
+          break;
+      }
+
+      if($target.length > 0) {
+        self.snapToPanel($target);
+      }
+
+    },
+
+    enable: function() {
+
+      var self = this;
+
+      // Gather scrollOffset for next scroll
+      self.scrollOffset = self.$snapContainer.scrollTop();
+
+      self.enabled = true;
+
+    },
+
+    disable: function() {
+
+      var self = this;
+
+      self.enabled = false;
+
+    },
+
+    toggle: function() {
+
+      var self = this;
+
+      if(self.enabled) {
+        self.disable();
+      } else {
+        self.enable();
+      }
+
+    }
+
+  };
+
+  $.fn[pluginName] = function(options) {
+
+    var args = Array.prototype.slice.call(arguments);
+
+    return this.each(function() {
+
+      var pluginInstance = $.data(this, storageName);
+      if(typeof options === 'object' || options === 'init' || ! options) {
+        if(!pluginInstance) {
+          if(options === 'init') {
+            options = args[1] || {};
+          }
+
+          pluginInstance = Object.create(pluginObject).init(options, this);
+          $.data(this, storageName, pluginInstance);
+        } else {
+          $.error('Plugin is already initialized for this object.');
+          return;
+        }
+      } else if(!pluginInstance) {
+        $.error('Plugin is not initialized for this object yet.');
+        return;
+      } else if(pluginInstance[options]) {
+        var method = options;
+        options = args.slice(1);
+        pluginInstance[method].apply(pluginInstance, options);
+      } else {
+        $.error('Method ' +  options + ' does not exist on jQuery.panelSnap.');
+        return;
+      }
+
+    });
+
+  };
+
+  $.fn[pluginName].options = {
+    $menu: false,
+    menuSelector: 'a',
+    panelSelector: 'section',
+    namespace: '.panelSnap',
+    onSnapStart: function(){},
+    onSnapFinish: function(){},
+    onActivate: function(){},
+    directionThreshold: 50,
+    slideSpeed: 200,
+    keyboardNavigation: {
+      enabled: false,
+      nextPanelKey: 40,
+      previousPanelKey: 38,
+      wrapAround: true
+    },
+    strictContainerSelection: true
+  };
+
+})(jQuery, window, document);
+
+/*!
+ * Special flavoured jQuery Mobile scrollstart & scrollstop events.
+ * Version 0.1.3
+ *
+ * Requires:
+ * - jQuery 1.7.1 or higher (no jQuery.migrate needed)
+ *
+ * Copyright 2013, Guido Bouman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Date: Wed Feb 13 16:05:00 2013 +0100
+ */
+(function($) {
+
+  // Also handles the scrollstop event
+  $.event.special.scrollstart = {
+
+    enabled: true,
+
+    setup: function() {
+
+      var thisObject = this;
+      var $this = $(thisObject);
+      var scrolling;
+      var timer;
+
+      $this.data('scrollwatch', true);
+
+      function trigger(event, scrolling) {
+
+        event.type = scrolling ? "scrollstart" : "scrollstop";
+        $this.trigger(event);
+
+      }
+
+      $this.on("touchmove scroll", function(event) {
+
+        if(!$.event.special.scrollstart.enabled) {
+          return;
+        }
+
+        if(!$.event.special.scrollstart.scrolling) {
+          $.event.special.scrollstart.scrolling = true;
+          trigger(event, true);
+        }
+
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          $.event.special.scrollstart.scrolling = false;
+          trigger(event, false);
+        }, 50);
+
+      });
+
+    }
+
+  };
+
+  // Proxies scrollstart when needed
+  $.event.special.scrollstop = {
+
+    setup: function() {
+
+      var thisObject = this;
+      var $this = $(thisObject);
+
+      if(!$this.data('scrollwatch')) {
+        $(this).on('scrollstart', function(){});
+      }
+
+    }
+
+  };
+
+})(jQuery);
+
+/*!
+ * Resizestart and resizestop events.
+ * Version 0.0.1
+ *
+ * Requires:
+ * - jQuery 1.7.1 or higher (no jQuery.migrate needed)
+ *
+ * Copyright 2013, Guido Bouman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Date: Fri Oct 25 15:05:00 2013 +0100
+ */
+(function($) {
+
+  // Also handles the resizestop event
+  $.event.special.resizestart = {
+
+    enabled: true,
+
+    setup: function() {
+
+      var thisObject = this;
+      var $this = $(thisObject);
+      var resizing;
+      var timer;
+
+      $this.data('resizewatch', true);
+
+      function trigger(event, resizing) {
+
+        event.type = resizing ? "resizestart" : "resizestop";
+        $this.trigger(event);
+
+      }
+
+      $this.on("resize", function(event) {
+
+        if(!$.event.special.resizestart.enabled) {
+          return;
+        }
+
+        if(!$.event.special.resizestart.resizing) {
+          $.event.special.resizestart.resizing = true;
+          trigger(event, true);
+        }
+
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          $.event.special.resizestart.resizing = false;
+          trigger(event, false);
+        }, 200);
+
+      });
+
+    }
+
+  };
+
+  // Proxies resizestart when needed
+  $.event.special.resizestop = {
+
+    setup: function() {
+
+      var thisObject = this;
+      var $this = $(thisObject);
+
+      if(!$this.data('resizewatch')) {
+        $(this).on('resizestart', function(){});
+      }
+
+    }
+
+  };
+
+})(jQuery);
+
+/*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
+ * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
+ * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
+ *
+ * Version: 3.0.6
+ *
+ * Requires: 1.2.2+
+ */
+(function($) {
+
+  var types = ['DOMMouseScroll', 'mousewheel'];
+
+  if ($.event.fixHooks) {
+    for ( var i=types.length; i; ) {
+      $.event.fixHooks[ types[--i] ] = $.event.mouseHooks;
+    }
+  }
+
+  $.event.special.mousewheel = {
+    setup: function() {
+      if ( this.addEventListener ) {
+        for ( var i=types.length; i; ) {
+          this.addEventListener( types[--i], handler, false );
+        }
+      } else {
+        this.onmousewheel = handler;
+      }
+    },
+
+    teardown: function() {
+      if ( this.removeEventListener ) {
+        for ( var i=types.length; i; ) {
+          this.removeEventListener( types[--i], handler, false );
+        }
+      } else {
+        this.onmousewheel = null;
+      }
+    }
+  };
+
+  $.fn.extend({
+    mousewheel: function(fn) {
+      return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+    },
+
+    unmousewheel: function(fn) {
+      return this.unbind("mousewheel", fn);
+    }
+  });
+
+  function handler(event) {
+    var orgEvent = event || window.event,
+        args = [].slice.call( arguments, 1 ),
+        delta = 0,
+        returnValue = true,
+        deltaX = 0,
+        deltaY = 0;
+
+    event = $.event.fix(orgEvent);
+    event.type = "mousewheel";
+
+    // Old school scrollwheel delta
+    if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
+    if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
+
+    // New school multidimensional scroll (touchpads) deltas
+    deltaY = delta;
+
+    // Gecko
+    if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+      deltaY = 0;
+      deltaX = -1*delta;
+    }
+
+    // Webkit
+    if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
+    if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
+
+    // Add event and delta to the front of the arguments
+    args.unshift(event, delta, deltaX, deltaY);
+
+    return ($.event.dispatch || $.event.handle).apply(this, args);
+  }
+
+})(jQuery);
